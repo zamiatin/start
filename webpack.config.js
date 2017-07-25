@@ -1,48 +1,55 @@
 var path = require('path');
 var webpack = require('webpack');
 var UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 module.exports = {
   context: path.resolve(__dirname, "src"),
-  entry: {
-    home: "./home",
-    about: "./about"
-  },
-
+  entry: "./home",
   output: {
     path: path.resolve(__dirname, "public"),
-    filename: "[name].js",
-    library: "[name]"
+    filename: "main.js",
   },
 
   watch: NODE_ENV == 'development',
 
   watchOptions: {
-    aggregateTimeout: 100
+    aggregateTimeout: 300
   },
 
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js?$/,
         loader: 'babel-loader',
-        exclude: /node_modules/,
+        include: path.resolve(__dirname, 'src'),
+      },
+      {
+        test: /\.scss$/,
+        include: path.resolve(__dirname, 'src', 'style'),
+        use: ExtractTextPlugin.extract ({
+          fallback: 'style-loader',
+          use: ['css-loader?sourceMap', 'sass-loader'],
+        })
+      },
+      {
+        test: /\.(png|jpg|svg|ttf|eot|woff|woff2)$/,
+        include: path.resolve(__dirname, 'src'),
+        loader: 'file-loader?name=[hash].[ext]&publicPath=/public/',
       },
     ]
   },
 
-  devtool: NODE_ENV == 'development' ? "cheap-iline-module-source-map" : false,
+  devtool: NODE_ENV == 'development' ? 'inline-source-map' : false,
 
   plugins: [
     new webpack.DefinePlugin({
       NODE_ENV: JSON.stringify(NODE_ENV)
     }),
+    new ExtractTextPlugin('main.css'),
     new webpack.NoEmitOnErrorsPlugin(),
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'common'
-    })
   ]
 
 };

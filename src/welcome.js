@@ -1,5 +1,5 @@
 'use strict';
 
-const Welcome = (argument) => alert(`Welcome ${argument}`);
+const Welcome = (argument) => console.log(`Welcome ${argument}`);
 
 export default Welcome;
