@@ -9,6 +9,6 @@ const div = document.getElementById('title');
 const img = new Image();
 img.src = image;
 div.append(img);
-Welcome("zamnya");
+Welcome("zamnya!!!");
 
 exports.welcome = Welcome;

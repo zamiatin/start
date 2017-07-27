@@ -10,13 +10,8 @@ module.exports = {
   entry: "./home",
   output: {
     path: path.resolve(__dirname, "public"),
+    publicPath: process.env.PUBLIC_PATH,
     filename: "main.js",
-  },
-
-  watch: NODE_ENV == 'development',
-
-  watchOptions: {
-    aggregateTimeout: 300
   },
 
   module: {
@@ -30,15 +25,20 @@ module.exports = {
         test: /\.scss$/,
         include: path.resolve(__dirname, 'src', 'style'),
         use: ExtractTextPlugin.extract ({
-          fallback: 'style-loader',
+          // fallback: 'style-loader',
           use: ['css-loader?sourceMap', 'sass-loader'],
         })
       },
       {
-        test: /\.(png|jpg|svg|ttf|eot|woff|woff2)$/,
-        include: path.resolve(__dirname, 'src'),
-        loader: 'file-loader?name=[hash].[ext]&publicPath=/public/',
+        test: /\.ttf$/,
+        include: path.resolve(__dirname, 'src', 'fonts'),
+        loader: 'file-loader?name=[hash].[ext]'
       },
+      {
+        test: /\.(png|jpg|svg)$/,
+        include: path.resolve(__dirname, 'src'),
+        loader: 'url-loader?limit=1000000',
+      }
     ]
   },
 
@@ -50,8 +50,21 @@ module.exports = {
     }),
     new ExtractTextPlugin('main.css'),
     new webpack.NoEmitOnErrorsPlugin(),
-  ]
+    new webpack.HotModuleReplacementPlugin()
+  ],
 
+  devServer: {
+    hot: true,
+    port: 5000,
+    stats: {
+      colors: true,
+      hash: false,
+      timings: true,
+      chunks: false,
+      chunkModules: false,
+      modules: false
+    }
+  }
 };
 
 if (NODE_ENV == 'production') {
