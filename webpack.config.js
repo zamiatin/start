@@ -4,10 +4,11 @@ var UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const isProd = NODE_ENV === 'prod';
 
 module.exports = {
   context: path.resolve(__dirname, "src"),
-  entry: "./home",
+  entry: isProd ? "./index" : ["webpack-hot-middleware/client", "./index"],
   output: {
     path: path.resolve(__dirname, "public"),
     publicPath: process.env.PUBLIC_PATH,
@@ -19,30 +20,26 @@ module.exports = {
       {
         test: /\.js?$/,
         loader: 'babel-loader',
-        include: path.resolve(__dirname, 'src'),
       },
       {
         test: /\.scss$/,
-        include: path.resolve(__dirname, 'src', 'style'),
-        use: ExtractTextPlugin.extract ({
-          // fallback: 'style-loader',
-          use: ['css-loader?sourceMap', 'sass-loader'],
-        })
+        use: isProd ? ExtractTextPlugin.extract ({
+          fallback: 'style-loader',
+          use: ['css-loader?minimize', 'sass-loader'],
+        }) : ['style-loader', 'css-loader?sourceMap', 'sass-loader']
       },
       {
         test: /\.ttf$/,
-        include: path.resolve(__dirname, 'src', 'fonts'),
         loader: 'file-loader?name=[hash].[ext]'
       },
       {
         test: /\.(png|jpg|svg)$/,
-        include: path.resolve(__dirname, 'src'),
         loader: 'url-loader?limit=1000000',
       }
     ]
   },
 
-  devtool: NODE_ENV == 'development' ? 'inline-source-map' : false,
+  devtool: NODE_ENV == 'development' ? 'cheap-module-eval-source-map' : false,
 
   plugins: [
     new webpack.DefinePlugin({
@@ -50,21 +47,20 @@ module.exports = {
     }),
     new ExtractTextPlugin('main.css'),
     new webpack.NoEmitOnErrorsPlugin(),
-    new webpack.HotModuleReplacementPlugin()
   ],
 
-  devServer: {
-    hot: true,
-    port: 5000,
-    stats: {
-      colors: true,
-      hash: false,
-      timings: true,
-      chunks: false,
-      chunkModules: false,
-      modules: false
-    }
-  }
+  // devServer: {
+  //   hot: true,
+  //   port: 5000,
+  //   stats: {
+  //     colors: true,
+  //     hash: false,
+  //     timings: true,
+  //     chunks: false,
+  //     chunkModules: false,
+  //     modules: false
+  //   }
+  // }
 };
 
 if (NODE_ENV == 'production') {
@@ -72,5 +68,9 @@ if (NODE_ENV == 'production') {
     new UglifyJSPlugin({
       compress: true,
     })
+  );
+} else if (!isProd) {
+  module.exports.plugins.push(
+    new webpack.HotModuleReplacementPlugin()
   );
 }
